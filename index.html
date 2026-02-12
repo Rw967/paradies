@@ -2,412 +2,245 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Paradies.io</title>
+    <title>Paradies.io - V44 FINAL STABLE</title>
     <style>
-        :root {
-            --neon: #00f7ff;
-            --gold: #ffd700;
-            --bg: #020205;
-            --win: #00ff88;
-            --red: #ff4d4d;
-        }
+        :root { --neon: #00f7ff; --gold: #ffd700; --bg: #020205; --win: #00ff88; --red: #ff4d4d; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; user-select: none; }
+        #bgCanvas { position: fixed; inset: 0; z-index: -1; filter: brightness(2); }
 
-        body {
-            background: var(--bg);
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            overflow: hidden;
-            user-select: none;
-        }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .window { background: #0a0a15; border: 3px solid var(--neon); padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 600px; box-shadow: 0 0 60px rgba(0,247,255,0.4); }
+        
+        .btn { background: transparent; border: 2px solid var(--neon); color: var(--neon); padding: 12px 25px; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; transition: 0.2s; margin: 5px; }
+        .btn:hover { background: var(--neon); color: #000; box-shadow: 0 0 20px var(--neon); }
+        .btn-gold { border-color: var(--gold); color: var(--gold); }
 
-        #bgCanvas {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-        }
+        #skinList { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; padding: 10px; }
+        .skin-card { background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 8px; padding: 10px; cursor: pointer; text-align: center; }
+        .equipped { border-color: var(--win); background: rgba(0,255,136,0.1); }
 
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .window {
-            background: #0a0a0f;
-            border: 2px solid var(--neon);
-            padding: 25px;
-            border-radius: 20px;
-            text-align: center;
-            width: 85%;
-            max-width: 900px;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 0 30px rgba(0,247,255,0.2);
-        }
-
-        .btn {
-            background: transparent;
-            border: 1px solid var(--neon);
-            color: var(--neon);
-            padding: 10px 15px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 8px;
-            font-weight: bold;
-            transition: 0.2s;
-            text-transform: uppercase;
-            font-size: 11px;
-        }
-
-            .btn:hover {
-                background: var(--neon);
-                color: #000;
-                box-shadow: 0 0 10px var(--neon);
-            }
-
-        .btn-gold {
-            border-color: var(--gold);
-            color: var(--gold);
-        }
-
-        .btn-red {
-            border-color: var(--red);
-            color: var(--red);
-        }
-
-        .btn-selected {
-            border-color: var(--win);
-            color: var(--win);
-            background: rgba(0,255,136,0.1);
-        }
-
-        #briefing {
-            background: rgba(255,255,255,0.05);
-            border: 1px dashed var(--neon);
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 10px;
-            color: #ccc;
-            font-size: 14px;
-            display: none;
-            text-align: left;
-        }
-
-        #welt {
-            width: 1000px;
-            height: 600px;
-            background: rgba(0,0,0,0.85);
-            border: 1px solid #333;
-            margin: 60px auto;
-            position: relative;
-            overflow: hidden;
-            display: none;
-            cursor: crosshair;
-        }
-
-        #player {
-            position: absolute;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            box-shadow: 0 0 15px var(--neon);
-        }
-
-        #hud {
-            position: absolute;
-            top: 0;
-            width: 100%;
-            height: 55px;
-            display: none;
-            justify-content: space-around;
-            align-items: center;
-            background: #000;
-            border-bottom: 2px solid var(--neon);
-        }
-
-        #notification-toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #111;
-            border: 2px solid var(--neon);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 10px;
-            z-index: 2000;
-            display: none;
-        }
-
-        .apple {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: #ff3333;
-            border-radius: 50%;
-            box-shadow: 0 0 10px red;
-        }
-
-        .enemy {
-            position: absolute;
-            background: red;
-            border: 2px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-        }
-
-        .bullet {
-            position: absolute;
-            background: yellow;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
+        #welt { width: 1000px; height: 600px; background: rgba(0,0,0,0.96); border: 4px solid #333; margin: 70px auto; position: relative; overflow: hidden; display: none; }
+        #player { position: absolute; z-index: 20; display: flex; align-items: center; justify-content: center; }
+        .apple { position: absolute; width: 22px; height: 22px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 20px #ff0000; }
+        .enemy { position: absolute; border: 2px solid red; border-radius: 8px; font-size: 25px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px red; }
+        .bullet { position: absolute; background: var(--gold); width: 10px; height: 10px; border-radius: 50%; }
+        .blackhole { position: absolute; width: 120px; height: 120px; background: radial-gradient(circle, #000 40%, var(--red) 100%); border-radius: 50%; left: 440px; top: 240px; box-shadow: 0 0 50px var(--red); }
+        
+        #hud { position: absolute; top: 0; width: 100%; height: 65px; display: none; justify-content: space-around; align-items: center; background: #000; border-bottom: 3px solid var(--neon); z-index: 100; font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <canvas id="bgCanvas"></canvas>
-    <div id="notification-toast"></div>
+<canvas id="bgCanvas"></canvas>
 
-    <div id="mainMenu" class="overlay" style="display: flex;">
-        <h1 style="color: var(--neon); font-size: 60px; text-shadow: 0 0 20px var(--neon); margin: 0;">PARADIES.IO</h1>
-        <div style="color: var(--gold); font-size: 24px; margin: 10px 0;">BANK: <span id="bankDisplay">0</span> 🪙</div>
-        <button class="btn" onclick="toggleMenu('modeMenu', true)">MISSION STARTEN</button>
-        <button class="btn btn-gold" onclick="toggleMenu('shopMenu', true)">SKIN SHOP (50)</button>
+<div id="mainMenu" class="overlay" style="display: flex;">
+    <h1 style="color: var(--neon); font-size: 80px; text-shadow: 0 0 30px var(--neon); margin: 0;">PARADIES.IO</h1>
+    <div style="color: var(--gold); font-size: 25px; margin: 15px 0;">COINS: <span id="bankDisplay">0</span> 🪙</div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn" onclick="toggleMenu('modeMenu', true)">MISSIONEN</button>
+        <button class="btn btn-gold" onclick="toggleMenu('shopMenu', true)">SHOP</button>
+        <button class="btn" style="border-color:#555; color:#555;" onclick="toggleMenu('settingsMenu', true)">SETTINGS</button>
     </div>
+    <button class="btn" style="position: fixed; bottom: 20px; right: 20px; border-color: red; color: red;" onclick="toggleMenu('confirmDelete', true)">KONTO LÖSCHEN</button>
+</div>
 
-    <div id="modeMenu" class="overlay">
-        <div class="window">
-            <h2 style="color: var(--neon);">MISSION WÄHLEN</h2>
-            <div id="modeButtons" style="display: grid; grid-template-columns: repeat(4, 1fr);">
-            </div>
-
-            <div id="briefing">
-                <strong id="briefingTitle" style="color: var(--neon); font-size: 18px;"></strong><br><br>
-                <span id="briefingText"></span>
-            </div>
-
-            <button id="playNowBtn" style="background:var(--win); color:black; border:none; padding:15px 40px; font-size:20px; display:none; margin: 10px auto; cursor:pointer; border-radius:10px; font-weight:900;" onclick="startGame()">JETZT STARTEN</button>
-            <br><button class="btn" onclick="toggleMenu('modeMenu', false)">ZURÜCK</button>
+<div id="modeMenu" class="overlay">
+    <div class="window">
+        <h2 style="color: var(--neon);">MISSION WÄHLEN</h2>
+        <div id="modeButtons" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+        <div id="briefingBox" style="display:none; margin-top:20px; padding:15px; border:2px solid var(--gold); background:rgba(255,215,0,0.05);">
+            <h3 id="bTitle" style="color:var(--gold); margin:0;"></h3>
+            <p id="bDesc" style="font-size:14px; color:#ccc;"></p>
+            <button class="btn" id="startBtn" style="width:100%; background:var(--win); color:black;">MISSION STARTEN</button>
         </div>
+        <button class="btn" onclick="toggleMenu('mainMenu', true)" style="margin-top:10px;">ZURÜCK</button>
     </div>
+</div>
 
-    <div id="shopMenu" class="overlay">
-        <div class="window">
-            <h2 style="color: var(--gold);">SKIN SHOP</h2>
-            <div id="skinList" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;"></div>
-            <br><button class="btn" onclick="toggleMenu('shopMenu', false)">ZURÜCK</button>
-        </div>
-    </div>
+<div id="shopMenu" class="overlay"><div class="window"><h2>SKIN SHOP</h2><div id="skinList"></div><button class="btn" onclick="toggleMenu('mainMenu', true)">ZURÜCK</button></div></div>
+<div id="settingsMenu" class="overlay"><div class="window"><h2>SETTINGS</h2><p>MUSIC: <input type="range"></p><p>SFX: <input type="range"></p><button class="btn" onclick="toggleMenu('mainMenu', true)">OK</button></div></div>
+<div id="confirmDelete" class="overlay"><div class="window"><h2>LÖSCHEN?</h2><button class="btn" onclick="localStorage.clear(); location.reload();">JA</button><button class="btn" onclick="toggleMenu('mainMenu', true)">NEIN</button></div></div>
+<div id="completeMenu" class="overlay"><div class="window"><h2 id="finishTitle">ENDE</h2><p style="font-size:30px;">BELOHNUNG: <span id="finishCoins">0</span> 🪙</p><button class="btn" onclick="location.reload()">HAUPTMENÜ</button></div></div>
 
-    <div id="hud">
-        <div id="hud-mode" style="color:var(--neon)">-</div>
-        <div>❤️ <span id="hud-lives">3</span></div>
-        <div>🪙 <span id="hud-coins">0</span></div>
-        <div id="hud-stat">STAT: 0</div>
-        <button class="btn btn-gold" onclick="endAndSave()">💾 SICHERN & BEENDEN</button>
-    </div>
+<div id="hud">
+    <div id="hud-mode">MODE</div>
+    <div id="hud-lives">❤️ 3</div>
+    <div id="hud-coins">🪙 0</div>
+    <div id="hud-timer"></div>
+    <button class="btn" style="font-size:12px;" onclick="finishLevel()">SICHERN</button>
+</div>
 
-    <div id="welt"><div id="player"></div></div>
+<div id="welt"><div id="player"></div></div>
 
-    <div id="deathScreen" class="overlay">
-        <div style="color: var(--red); font-size: 70px; font-weight: 900; font-style: italic;">WASTED</div>
-        <button class="btn btn-gold" onclick="respawn()">RESPAWN (5 🪙)</button>
-        <button class="btn" onclick="location.reload()">HAUPTMENÜ</button>
-    </div>
+<script>
+let bank = parseInt(localStorage.getItem('p_bank')) || 0;
+let ownedSkins = JSON.parse(localStorage.getItem('p_skins')) || ['🟦'];
+let currentSkin = localStorage.getItem('p_currentSkin') || '🟦';
+let x, y, lives, sessionCoins, score, pSize, isAlive = false, timeLeft = 60, gameTime = 0;
+let keys = {}, currentMode = '', bullets = [], enemies = [];
 
-    <script>
-        // --- DATEN ---
-        let bank = parseInt(localStorage.getItem('p_bank')) || 0;
-        let ownedSkins = JSON.parse(localStorage.getItem('p_skins')) || ['🟦'];
-        let currentSkin = '🟦';
-        let x=480, y=280, lives=3, sessionCoins=0, score=0, pSize=25, isAlive=false;
-        let currentMode='', keys={}, selectedModeId = '';
+const modes = {
+    'Kampf': 'Zerstöre die 👾 Gegner! Nur Kills geben Coins (3 pro Kill).',
+    'Gigant': 'Werde 450px groß durch Äpfel. Wände sind kein Problem!',
+    'Coin Simulator': 'Jeder 2. Apfel gibt dir einen Coin. Ganz entspannt.',
+    'Hardcore': 'EXTREME SPEED! Du hast nur 1 Leben. Wer lange überlebt, kriegt den Bonus.',
+    'Klassik': '60 Sekunden Zeit. Sammle so viele Äpfel wie möglich!',
+    'Coin-Farming': 'Vorsicht vor dem roten Loch in der Mitte! Viele Äpfel = Viele Coins.'
+};
 
-        const modeData = {
-        'Gigant': 'Friss Äpfel um zu wachsen. Ziel: 350px Größe. Berühre NICHT den Rand (Border), sonst verlierst du ein Leben!',
-        'Kampf': 'Überlebe die Dämonen! Benutze die MAUS zum Schießen. Berühre die Gegner nicht, sonst bist du sofort erledigt.',
-        'Coins': 'Münz-Rausch! Sammle Äpfel, um massig Geld zu verdienen. Aber Vorsicht: Die Border ist tödlich.',
-        'Speed': 'Extremer Speedrun! Du bist super schnell. Sammle Äpfel, aber knall nicht gegen die Wand!',
-        'Dodge': 'Ausweich-Modus! Die Gegner bewegen sich. Bleib weg von ihnen und sammle Äpfel für Punkte.',
-        'Ghost': 'Du bist fast unsichtbar. Die Border ist hier dein größter Feind, da man sich leicht verschätzt.',
-        'Hardcore': 'Nur 1 Leben! Jede Berührung mit Gegnern oder der Border bedeutet das sofortige Ende.',
-        'Chaos': 'Vorsicht! Die Gegner teleportieren sich zufällig. Du musst extrem schnell reagieren.'
+const skinIcons = ['🟦','🐱','😎','👽','🤖','🦊','🦁','💎','🔥','👑','🐙','🐡','🐢','🦖','🚀','🛸','🌈','🍕','🎮','👾','💀','💰','🧿','🌀','👺','👻','🤡','👹','🌟','🌙','🌍','🎨','🎬','🎤','🎧','🎸','🕹️','🪐','🧪','🧬','🔋','⚡','🔋','💎','🛸'];
+
+function toggleMenu(id, s) { 
+    document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+    if(s) document.getElementById(id).style.display = 'flex';
+    if(id==='shopMenu') renderShop();
+}
+
+function renderShop() {
+    const list = document.getElementById('skinList'); list.innerHTML = '';
+    skinIcons.forEach((s, i) => {
+        const price = i * 50; const isOwned = ownedSkins.includes(s);
+        const card = document.createElement('div'); card.className = `skin-card ${currentSkin === s ? 'equipped' : ''}`;
+        card.innerHTML = `<div style="font-size:25px">${s}</div><div style="font-size:9px">${isOwned?'FREI':price}</div>`;
+        card.onclick = () => {
+            if(isOwned) { currentSkin = s; localStorage.setItem('p_currentSkin', s); renderShop(); }
+            else if(bank >= price) { bank -= price; ownedSkins.push(s); localStorage.setItem('p_bank', bank); localStorage.setItem('p_skins', JSON.stringify(ownedSkins)); renderShop(); }
         };
+        list.appendChild(card);
+    });
+}
 
-        const player = document.getElementById('player');
-        const welt = document.getElementById('welt');
+const mBox = document.getElementById('modeButtons');
+Object.keys(modes).forEach(m => {
+    const b = document.createElement('button'); b.className = 'btn'; b.innerText = m;
+    b.onclick = () => {
+        document.getElementById('briefingBox').style.display = 'block';
+        document.getElementById('bTitle').innerText = m;
+        document.getElementById('bDesc').innerText = modes[m];
+        document.getElementById('startBtn').onclick = () => startGame(m);
+    };
+    mBox.appendChild(b);
+});
 
-        // Hintergrund
-        const canvas = document.getElementById('bgCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let stars = Array(100).fill().map(() => ({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2 }));
-        function drawBg() {
-        ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle = "#fff"; stars.forEach(st => { ctx.fillRect(st.x, st.y, st.s, st.s); st.y += 0.4; if(st.y > canvas.height) st.y=0; });
-        requestAnimationFrame(drawBg);
+function startGame(m) {
+    currentMode = m; isAlive = true; score = 0; sessionCoins = 0; pSize = 35; gameTime = 0;
+    x = (m === 'Coin-Farming') ? 100 : 480; y = 280; // Startpunkt Fix für Farming
+    lives = (m === 'Hardcore') ? 1 : 3;
+    timeLeft = 60; bullets = []; enemies = [];
+    toggleMenu('', false);
+    document.getElementById('hud').style.display = 'flex';
+    document.getElementById('welt').style.display = 'block';
+    document.getElementById('welt').innerHTML = '<div id="player"></div>';
+    if(m === 'Coin-Farming') { let bh = document.createElement('div'); bh.className = 'blackhole'; document.getElementById('welt').appendChild(bh); }
+    if(m === 'Kampf') spawnEnemy();
+    spawnApple(); loop();
+}
+
+function spawnApple() {
+    const a = document.createElement('div'); a.className = 'apple';
+    a.style.left = Math.random()*950+'px'; a.style.top = Math.random()*550+'px';
+    document.getElementById('welt').appendChild(a);
+}
+
+function spawnEnemy() {
+    const e = document.createElement('div'); e.className = 'enemy'; e.innerHTML = '👾';
+    e.style.left = Math.random()*900+'px'; e.style.top = Math.random()*500+'px';
+    e.style.width = '50px'; e.style.height = '50px';
+    document.getElementById('welt').appendChild(e);
+    enemies.push({el: e});
+}
+
+function loop() {
+    if(!isAlive) return;
+    gameTime += 0.016;
+    let s = (currentMode === 'Hardcore') ? 25 : 10;
+    if(keys['KeyW']) y -= s; if(keys['KeyS']) y += s;
+    if(keys['KeyA']) x -= s; if(keys['KeyD']) x += s;
+
+    // Border Logic
+    if(x<0 || x>1000-pSize || y<0 || y>600-pSize) {
+        if(currentMode === 'Hardcore') { die(); return; }
+        x = Math.max(0, Math.min(x, 1000-pSize)); y = Math.max(0, Math.min(y, 600-pSize));
+    }
+
+    // Apples
+    document.querySelectorAll('.apple').forEach(a => {
+        if(Math.abs(x-parseInt(a.style.left))<pSize && Math.abs(y-parseInt(a.style.top))<pSize) {
+            a.remove(); spawnApple(); score++;
+            if(currentMode === 'Coin Simulator' && score % 2 === 0) sessionCoins++;
+            if(currentMode === 'Klassik' || currentMode === 'Coin-Farming' || currentMode === 'Hardcore') sessionCoins++;
+            if(currentMode === 'Gigant') { pSize += 12; if(pSize >= 450) finishLevel(); }
+            updateHUD();
         }
-        drawBg();
+    });
 
-        // Modus Buttons generieren
-        const modeBox = document.getElementById('modeButtons');
-        Object.keys(modeData).forEach(m => {
-        const b = document.createElement('button');
-        b.className = 'btn';
-        b.innerText = m;
-        b.onclick = () => {
-        selectedModeId = m;
-        document.querySelectorAll('#modeButtons .btn').forEach(btn => btn.classList.remove('btn-selected'));
-        b.classList.add('btn-selected');
-        document.getElementById('briefing').style.display = 'block';
-        document.getElementById('briefingTitle').innerText = m.toUpperCase();
-        document.getElementById('briefingText').innerText = modeData[m];
-        document.getElementById('playNowBtn').style.display = 'block';
-        };
-        modeBox.appendChild(b);
+    // Kampf-Logic
+    bullets.forEach((b, bi) => {
+        b.x += b.vx; b.y += b.vy; b.el.style.left = b.x+'px'; b.el.style.top = b.y+'px';
+        enemies.forEach((e, ei) => {
+            if(Math.abs(b.x-parseInt(e.el.style.left))<50 && Math.abs(b.y-parseInt(e.el.style.top))<50) {
+                e.el.remove(); enemies.splice(ei, 1); b.el.remove(); bullets.splice(bi, 1);
+                sessionCoins += 3; spawnEnemy(); updateHUD();
+            }
         });
+    });
 
-        // Skins Shop
-        const skinIcons = ['🟦','🐱','😎','👽','🤖','🐶','🦊','🦁','🐯','🐸','🐵','🦄','🐝','🐙','🐡','🐢','🦖','🐉','🚀','🛸','💎','🔥','❄️','⚡️','🌈','🍕','🍔','🍦','⚽️','🎮','👑','🎸','👾','👻','🎃','💀','🍀','🧿','🔋','💻'];
-        function renderShop() {
-        const list = document.getElementById('skinList'); list.innerHTML = '';
-        skinIcons.forEach((icon, i) => {
-        const price = i * 2; const owned = ownedSkins.includes(icon);
-        const btn = document.createElement('button'); btn.className = 'btn';
-        btn.innerHTML = `${icon}<br>${owned ? 'JA' : price+'🪙'}`;
-        btn.onclick = () => {
-        if(owned) { currentSkin = icon; showNote("Skin gewählt!"); }
-        else if(bank >= price) { bank -= price; ownedSkins.push(icon); localStorage.setItem('p_skins', JSON.stringify(ownedSkins)); saveAll(); renderShop(); }
-        };
-        list.appendChild(btn);
-        });
-        }
+    if(currentMode === 'Coin-Farming' && Math.abs(x-440)<80 && Math.abs(y-240)<80) die();
 
-        function toggleMenu(id, s) { document.getElementById(id).style.display = s ? 'flex' : 'none'; if(id==='shopMenu') renderShop(); }
-        function showNote(t) { const n = document.getElementById('notification-toast'); n.innerText = t; n.style.display = 'block'; setTimeout(() => n.style.display='none', 2000); }
+    const p = document.getElementById('player');
+    p.innerText = currentSkin; p.style.left = x+'px'; p.style.top = y+'px';
+    p.style.width = pSize+'px'; p.style.height = pSize+'px'; p.style.fontSize = (pSize*0.8)+'px';
+    
+    if(currentMode === 'Klassik') { timeLeft -= 0.016; if(timeLeft <= 0) finishLevel(); updateHUD(); }
+    requestAnimationFrame(loop);
+}
 
-        function startGame() {
-        currentMode = selectedModeId; isAlive = true; lives = (currentMode==='Hardcore'?1:3); sessionCoins = 0; score = 0; pSize = 25;
-        document.querySelectorAll('.overlay').forEach(o => o.style.display='none');
-        document.getElementById('hud').style.display = 'flex';
-        document.getElementById('welt').style.display = 'block';
-        welt.innerHTML = '<div id="player"></div>';
-        if(['Kampf','Chaos','Hardcore'].includes(currentMode)) setInterval(() => { if(isAlive) spawnEnemy(); }, 2000);
-        spawnApple(); updateUI(); loop();
-        }
+function die() {
+    if(currentMode === 'Hardcore' && gameTime < 5) sessionCoins = 0; // Kein Exploit-Geld
+    lives--; updateHUD();
+    if(lives <= 0) { isAlive = false; finishLevel(); }
+    else { x = 480; y = 280; }
+}
 
-        function spawnApple() {
-        const a = document.createElement('div'); a.className='apple';
-        a.style.left = Math.random()*950+"px"; a.style.top = Math.random()*550+"px";
-        welt.appendChild(a);
-        }
+function finishLevel() {
+    isAlive = false; bank += Math.floor(sessionCoins);
+    localStorage.setItem('p_bank', bank);
+    document.getElementById('finishCoins').innerText = sessionCoins;
+    toggleMenu('completeMenu', true);
+}
 
-        function spawnEnemy() {
-        const e = document.createElement('div'); e.className='enemy';
-        e.style.width="30px"; e.style.height="30px"; e.innerText="😈";
-        e.style.left=Math.random()*950+"px"; e.style.top=Math.random()*550+"px";
-        welt.appendChild(e);
-        if(currentMode==='Chaos') setInterval(() => { e.style.left = Math.random()*950+"px"; e.style.top = Math.random()*550+"px"; }, 1500);
-        }
+function updateHUD() {
+    document.getElementById('bankDisplay').innerText = bank;
+    document.getElementById('hud-lives').innerText = "❤️ " + lives;
+    document.getElementById('hud-coins').innerText = "🪙 " + sessionCoins;
+    document.getElementById('hud-mode').innerText = currentMode.toUpperCase();
+    document.getElementById('hud-timer').innerText = (currentMode === 'Klassik') ? Math.ceil(timeLeft) + "s" : "";
+}
 
-        welt.onclick = (e) => {
-        if(!isAlive) return;
-        const rect = welt.getBoundingClientRect();
-        const bx = x + pSize/2, by = y + pSize/2;
+window.onkeydown=(e)=>keys[e.code]=true;
+window.onkeyup=(e)=>keys[e.code]=false;
+window.onmousedown=(e)=>{
+    if(currentMode === 'Kampf' && isAlive) {
+        const rect = document.getElementById('welt').getBoundingClientRect();
         const b = document.createElement('div'); b.className = 'bullet';
-        welt.appendChild(b);
-        const angle = Math.atan2(e.clientY - rect.top - by, e.clientX - rect.left - bx);
-        const vx = Math.cos(angle)*12, vy = Math.sin(angle)*12;
-        let bX = bx, bY = by;
-        let m = setInterval(() => {
-        bX += vx; bY += vy; b.style.left = bX+"px"; b.style.top = bY+"px";
-        if(bX<0 || bX>1000 || bY<0 || bY>600) { clearInterval(m); b.remove(); }
-        document.querySelectorAll('.enemy').forEach(en => {
-        if(Math.abs(bX - parseInt(en.style.left)) < 25 && Math.abs(bY - parseInt(en.style.top)) < 25) {
-        en.remove(); b.remove(); clearInterval(m); sessionCoins++; updateUI();
-        }
-        });
-        }, 20);
-        };
+        const sx = x+pSize/2, sy = y+pSize/2;
+        const angle = Math.atan2((e.clientY-rect.top)-sy, (e.clientX-rect.left)-sx);
+        b.style.left = sx+'px'; b.style.top = sy+'px';
+        document.getElementById('welt').appendChild(b);
+        bullets.push({el:b, x:sx, y:sy, vx:Math.cos(angle)*15, vy:Math.sin(angle)*15});
+    }
+};
 
-        window.onkeydown = (e) => keys[e.code] = true;
-        window.onkeyup = (e) => keys[e.code] = false;
-
-        function loop() {
-        if(!isAlive) return;
-        let s = (currentMode==='Speed' ? 14 : 7);
-        if(keys['ArrowUp'] || keys['KeyW']) y -= s;
-        if(keys['ArrowDown'] || keys['KeyS']) y += s;
-        if(keys['ArrowLeft'] || keys['KeyA']) x -= s;
-        if(keys['ArrowRight'] || keys['KeyD']) x += s;
-
-        if(x<0 || x>1000-pSize || y<0 || y>600-pSize) die();
-
-        document.querySelectorAll('.apple').forEach(a => {
-        if(Math.abs(x-parseInt(a.style.left)) < pSize && Math.abs(y-parseInt(a.style.top)) < pSize) {
-        a.remove(); spawnApple();
-        if(currentMode === 'Gigant') { pSize += 10; if(pSize>=350) endAndSave(); }
-        else { score++; if(score%2===0) sessionCoins++; }
-        updateUI();
-        }
-        });
-
-        document.querySelectorAll('.enemy').forEach(en => {
-        if(Math.abs(x-parseInt(en.style.left)) < pSize && Math.abs(y-parseInt(en.style.top)) < pSize) die();
-        });
-
-        const p = document.getElementById('player');
-        if(p) {
-        p.innerText = currentSkin; p.style.left = x+"px"; p.style.top = y+"px";
-        p.style.width = pSize+"px"; p.style.height = pSize+"px";
-        p.style.fontSize = (pSize*0.7)+"px";
-        p.style.background = (currentSkin==='🟦'?'var(--neon)':'transparent');
-        p.style.opacity = (currentMode==='Ghost' ? 0.4 : 1);
-        }
-        requestAnimationFrame(loop);
-        }
-
-        function die() {
-        lives--; updateUI();
-        if(lives <= 0) { isAlive = false; toggleMenu('deathScreen', true); }
-        else { x=480; y=280; showNote("Leben verloren!"); }
-        }
-
-        function respawn() {
-        if(bank >= 5) { bank -= 5; lives = 3; isAlive = true; x=480; y=280; toggleMenu('deathScreen', false); loop(); saveAll(); }
-        else showNote("Nicht genug Münzen!");
-        }
-
-        function endAndSave() {
-        bank += sessionCoins; saveAll(); location.reload();
-        }
-
-        function saveAll() {
-        localStorage.setItem('p_bank', bank);
-        document.getElementById('bankDisplay').innerText = bank;
-        }
-
-        function updateUI() {
-        document.getElementById('hud-mode').innerText = currentMode;
-        document.getElementById('hud-lives').innerText = lives;
-        document.getElementById('hud-coins').innerText = sessionCoins;
-        document.getElementById('hud-stat').innerText = "SCORE: " + (currentMode==='Gigant' ? pSize : score);
-        document.getElementById('bankDisplay').innerText = bank;
-        }
-
-        document.getElementById('bankDisplay').innerText = bank;
-    </script>
+const canvas = document.getElementById('bgCanvas'); const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+let stars = Array(150).fill().map(() => ({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*4}));
+function drawBg() {
+    ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#fff"; stars.forEach(s=>{ ctx.fillRect(s.x,s.y,s.s,s.s); s.y+=0.4; if(s.y>canvas.height) s.y=0; });
+    requestAnimationFrame(drawBg);
+}
+drawBg();
+document.getElementById('bankDisplay').innerText = bank;
+</script>
 </body>
 </html>

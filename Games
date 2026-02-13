@@ -2,277 +2,163 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>ULTRA RUNNER - Infinity Edition v4.7</title>
+    <title>ULTRA RUNNER - System Update</title>
     <style>
         :root { --primary: #3b82f6; --accent: #ec4899; --bg: #020617; }
         body { 
-            margin: 0; overflow: hidden; background: var(--bg); 
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            display: flex; justify-content: center; align-items: center; height: 100vh;
-            user-select: none; color: white;
-        }
-        
-        #bg-canvas { position: fixed; inset: 0; z-index: -1; }
-
-        #game-container {
-            position: relative; width: 950px; height: 500px;
-            border-radius: 20px; overflow: hidden;
-            box-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
-            background: #1e293b; border: 2px solid rgba(255,255,255,0.1);
+            margin: 0; 
+            overflow: hidden; 
+            background: var(--bg); 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            color: white; 
+            cursor: wait; /* Zeigt die Sanduhr an */
         }
 
-        canvas { display: block; }
+        #bg-canvas { position: fixed; inset: 0; z-index: -1; filter: blur(3px); }
 
-        .ui-screen {
-            position: absolute; inset: 0;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(15px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100;
-        }
-        .panel {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 40px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center; width: 450px;
+        .loading-container {
+            text-align: center;
+            z-index: 10;
         }
 
-        h1 { font-size: 50px; margin: 0 0 10px; background: linear-gradient(45deg, #60a5fa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        h2 { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
-
-        .menu-btn {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid #3b82f6; color: white;
-            padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold;
-            transition: 0.2s; width: 100%; margin: 8px 0; font-size: 16px;
+        /* Pulsierender Lade-Ring */
+        .ring {
+            width: 120px;
+            height: 120px;
+            border: 4px solid rgba(59, 130, 246, 0.1);
+            border-top: 4px solid var(--primary);
+            border-bottom: 4px solid var(--accent);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            animation: spin 1.5s linear infinite;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
         }
-        .menu-btn:hover { background: #3b82f6; transform: scale(1.02); box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
-        .btn-back { border-color: #64748b; margin-top: 20px; }
 
-        #hud {
-            position: absolute; top: 20px; left: 0; width: 100%;
-            display: flex; justify-content: space-around; pointer-events: none;
-            font-weight: 800; font-size: 22px; z-index: 10; text-shadow: 0 2px 4px black;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .hidden { display: none !important; }
-        .info-text { font-size: 14px; color: #cbd5e1; line-height: 1.6; text-align: left; }
+
+        h1 {
+            font-size: 28px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin: 10px 0;
+            background: linear-gradient(90deg, #fff, #3b82f6, #fff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        p {
+            color: #64748b;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        /* Die absolute Sperre */
+        .blocker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: transparent;
+        }
+
+        /* Kleiner pulsierender Punkt */
+        .dot-flashing {
+            display: inline-block;
+            position: relative;
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: var(--primary);
+            color: var(--primary);
+            animation: dot-flashing 1s infinite linear alternate;
+            margin-left: 10px;
+        }
+
+        @keyframes dot-flashing {
+            0% { background-color: var(--primary); }
+            50%, 100% { background-color: rgba(59, 130, 246, 0.2); }
+        }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
+
+<div class="blocker" id="blocker"></div>
 
 <canvas id="bg-canvas"></canvas>
 
-<div id="game-container">
-    <div id="hud" class="hidden">
-        <div>SCORE: <span id="scoreVal">0</span></div>
-        <div id="timerDisplay" class="hidden">TIME: <span id="timeVal">30</span>s</div>
-        <div id="modeName">NORMAL</div>
-    </div>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <div id="screen-main" class="ui-screen">
-        <div class="panel">
-            <h1>ULTRA RUNNER</h1>
-            <h2>Infinity Edition v4.7</h2>
-            <button class="menu-btn" onclick="showScreen('screen-modes')">SPIEL STARTEN</button>
-            <button class="menu-btn" onclick="showScreen('screen-info')">ANLEITUNG / INFOS</button>
-            <button class="menu-btn" onclick="showScreen('screen-settings')">EINSTELLUNGEN</button>
-        </div>
-    </div>
-
-    <div id="screen-modes" class="ui-screen hidden">
-        <div class="panel">
-            <h1>MODUS</h1>
-            <button class="menu-btn" onclick="initGame('normal')">NORMAL</button>
-            <button class="menu-btn" onclick="initGame('hardcore')">HARDCORE (Schnell!)</button>
-            <button class="menu-btn" onclick="initGame('speedrun')">SPEEDRUN (Zeit-Tanks!)</button>
-            <button class="menu-btn" onclick="initGame('moon')">MOON (Geringe Gravitation)</button>
-            <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
-        </div>
-    </div>
-
-    <div id="screen-info" class="ui-screen hidden">
-        <div class="panel">
-            <h1>INFOS</h1>
-            <div class="info-text">
-                <p><b>Sprung:</b> Maus/Leertaste halten für Höhe.</p>
-                <p><b>Fast Fall:</b> STRG drücken für Sturzflug.</p>
-                <p><b>Fairness:</b> Hindernisse spawnen jetzt mit garantiertem Mindestabstand.</p>
-            </div>
-            <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
-        </div>
-    </div>
-
-    <div id="screen-settings" class="ui-screen hidden">
-        <div class="panel">
-            <h1>SETTINGS</h1>
-            <button class="menu-btn" onclick="toggleAudio()">SOUND: <span id="audioStatus">AN</span></button>
-            <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
-        </div>
-    </div>
-
-    <div id="screen-over" class="ui-screen hidden">
-        <div class="panel">
-            <h1 id="over-title" style="color:#f472b6">GAME OVER</h1>
-            <p id="finalScoreDisplay" style="font-size: 24px;">Score: 0</p>
-            <button class="menu-btn" onclick="retryGame()">NOCHMAL</button>
-            <button class="menu-btn btn-back" onclick="showScreen('screen-main')">HAUPTMENÜ</button>
-        </div>
+<div class="loading-container">
+    <div class="ring"></div>
+    <h1>Update is coming</h1>
+    <p>PLEASE WAIT<span class="dot-flashing"></span></p>
+    <div style="margin-top: 50px; font-size: 10px; color: #334155; letter-spacing: 1px;">
+        V2.0.4 - SERVER MAINTENANCE MODE
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    // Hintergrund-Sterne damit es nicht langweilig ist
     const bgCanvas = document.getElementById('bg-canvas');
     const bctx = bgCanvas.getContext('2d');
-
-    canvas.width = 950; canvas.height = 500;
     let stars = [];
-    let audioEnabled = true;
 
-    function initStars() {
-        bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+    function init() {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
         stars = [];
-        for(let i=0; i<150; i++) stars.push({ x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height, s: Math.random()*2 + 0.5 });
+        for(let i=0; i<80; i++) {
+            stars.push({
+                x: Math.random() * bgCanvas.width,
+                y: Math.random() * bgCanvas.height,
+                s: Math.random() * 2
+            });
+        }
     }
-    window.addEventListener('resize', initStars);
 
-    function drawStars() {
-        bctx.fillStyle = "#020617"; bctx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
+    function draw() {
+        bctx.fillStyle = "#020617";
+        bctx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
         bctx.fillStyle = "white";
         stars.forEach(s => {
-            s.y += s.s * 0.3; if(s.y > bgCanvas.height) s.y = 0;
-            bctx.beginPath(); bctx.arc(s.x, s.y, s.s/2, 0, Math.PI*2); bctx.fill();
+            s.y += s.s * 0.1;
+            if(s.y > bgCanvas.height) s.y = 0;
+            bctx.beginPath();
+            bctx.arc(s.x, s.y, s.s/2, 0, Math.PI*2);
+            bctx.fill();
         });
-        requestAnimationFrame(drawStars);
+        requestAnimationFrame(draw);
     }
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSound(freq, type, duration, vol=0.1) {
-        if(!audioEnabled) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
-
-    let gameState = 'menu', currentMode = 'normal';
-    let score = 0, time = 35, speed = 6, obstacles = [], items = [];
-    let isPressing = false, jumpTimer = 0;
-
-    const player = { x: 100, y: 300, w: 45, h: 45, dy: 0, grav: 0.8, onGround: false };
-
-    function showScreen(id) {
-        document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        document.getElementById('hud').classList.add('hidden');
-        gameState = 'menu';
-    }
-
-    function toggleAudio() {
-        audioEnabled = !audioEnabled;
-        document.getElementById('audioStatus').innerText = audioEnabled ? "AN" : "AUS";
-    }
-
-    function initGame(mode) {
-        currentMode = mode; gameState = 'playing';
-        score = 0; time = 35; 
-        // Faire Start-Geschwindigkeiten
-        speed = (mode === 'hardcore') ? 9 : (mode === 'moon' ? 6 : 6.5);
-        obstacles = []; items = []; player.y = 300; player.dy = 0;
-        player.grav = (mode === 'moon') ? 0.35 : 0.85;
-
-        document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
-        document.getElementById('hud').classList.remove('hidden');
-        document.getElementById('modeName').innerText = mode.toUpperCase();
-        document.getElementById('timerDisplay').classList.toggle('hidden', mode !== 'speedrun');
-        
-        playSound(500, 'sine', 0.2);
-        update();
-    }
-
-    function retryGame() { initGame(currentMode); }
-
-    function update() {
-        if(gameState !== 'playing') return;
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        
-        if(currentMode === 'speedrun') {
-            time -= 1/60;
-            document.getElementById('timeVal').innerText = Math.ceil(time);
-            if(time <= 0) gameOver("ZEIT ABGELAUFEN!");
-        }
-
-        if(isPressing && jumpTimer > 0) {
-            player.dy = (currentMode === 'moon') ? -6.5 : -11.5;
-            jumpTimer--;
-        }
-
-        player.dy += player.grav;
-        player.y += player.dy;
-
-        if(player.y > canvas.height - player.h - 40) {
-            player.y = canvas.height - player.h - 40;
-            player.dy = 0; player.onGround = true;
-        } else player.onGround = false;
-
-        ctx.fillStyle = "#3b82f6"; ctx.shadowBlur = 15; ctx.shadowColor = "#3b82f6";
-        ctx.fillRect(player.x, player.y, player.w, player.h); ctx.shadowBlur = 0;
-        ctx.fillStyle = "#334155"; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
-
-        // INTELLIGENTES SPAWNING
-        let spawnChance = (currentMode === 'hardcore') ? 0.025 : 0.018;
-        // Berechne Mindestabstand basierend auf aktueller Geschwindigkeit (Fairness-Check)
-        let minGap = speed * (currentMode === 'moon' ? 55 : 42); 
-
-        if(Math.random() < spawnChance) {
-            let lastObs = obstacles[obstacles.length - 1];
-            if(!lastObs || (canvas.width - lastObs.x) > minGap) {
-                let h = 45 + Math.random()*85;
-                obstacles.push({x: canvas.width, y: canvas.height-h-40, w: 35, h: h});
-            }
-        }
-
-        obstacles.forEach((o, i) => {
-            o.x -= speed;
-            ctx.fillStyle = "#ef4444"; ctx.fillRect(o.x, o.y, o.w, o.h);
-            if(player.x < o.x + o.w && player.x + player.w > o.x && player.y < o.y + o.h && player.y + player.h > o.y) gameOver();
-            if(o.x < -40) { obstacles.splice(i,1); score++; document.getElementById('scoreVal').innerText = score; speed += 0.015; }
-        });
-
-        if(currentMode === 'speedrun' && Math.random() < 0.01) items.push({x: canvas.width, y: 200 + Math.random()*100, w: 25, h: 25});
-        items.forEach((it, i) => {
-            it.x -= speed;
-            ctx.fillStyle = "#fbbf24"; ctx.shadowBlur = 10; ctx.shadowColor = "#fbbf24";
-            ctx.fillRect(it.x, it.y, it.w, it.h); ctx.shadowBlur = 0;
-            if(player.x < it.x + it.w && player.x + player.w > it.x && player.y < it.y + it.h && player.y + player.h > it.y) {
-                items.splice(i,1); time += 5; playSound(800, 'sine', 0.1);
-            }
-        });
-
-        requestAnimationFrame(update);
-    }
-
-    function gameOver(reason = "CRASH!") {
-        gameState = 'over'; playSound(150, 'sawtooth', 0.5);
-        document.getElementById('screen-over').classList.remove('hidden');
-        document.getElementById('over-title').innerText = reason;
-        document.getElementById('finalScoreDisplay').innerText = "Score: " + score;
-    }
-
-    const startJump = () => { if(player.onGround && gameState === 'playing') { jumpTimer = 24; isPressing = true; playSound(400, 'triangle', 0.1); } };
-    window.addEventListener('mousedown', startJump);
-    window.addEventListener('mouseup', () => isPressing = false);
-    window.addEventListener('keydown', (e) => {
-        if(e.code === 'Space') startJump();
-        if(e.code === 'ControlLeft') player.dy = 18;
+    // Deaktiviert alle Tastaturbefehle (F5, F12, etc. werden erschwert)
+    window.addEventListener('keydown', function (e) {
+        e.preventDefault();
+        return false;
     });
-    window.addEventListener('keyup', (e) => { if(e.code === 'Space') isPressing = false; });
 
-    initStars(); drawStars();
+    // Verhindert Rechtsklick
+    window.oncontextmenu = function () {
+        return false;
+    }
+
+    window.onresize = init;
+    init();
+    draw();
 </script>
+
 </body>
 </html>

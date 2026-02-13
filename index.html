@@ -2,245 +2,369 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Paradies.io - V44 FINAL STABLE</title>
+    <title>Ultra Runner - Infinity Edition</title>
     <style>
-        :root { --neon: #00f7ff; --gold: #ffd700; --bg: #020205; --win: #00ff88; --red: #ff4d4d; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; user-select: none; }
-        #bgCanvas { position: fixed; inset: 0; z-index: -1; filter: brightness(2); }
+        :root {
+            --primary: #3b82f6;
+            --accent: #ec4899;
+            --bg: #020617;
+        }
 
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        .window { background: #0a0a15; border: 3px solid var(--neon); padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 600px; box-shadow: 0 0 60px rgba(0,247,255,0.4); }
-        
-        .btn { background: transparent; border: 2px solid var(--neon); color: var(--neon); padding: 12px 25px; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; transition: 0.2s; margin: 5px; }
-        .btn:hover { background: var(--neon); color: #000; box-shadow: 0 0 20px var(--neon); }
-        .btn-gold { border-color: var(--gold); color: var(--gold); }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: var(--bg);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            user-select: none;
+            color: white;
+        }
 
-        #skinList { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; padding: 10px; }
-        .skin-card { background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 8px; padding: 10px; cursor: pointer; text-align: center; }
-        .equipped { border-color: var(--win); background: rgba(0,255,136,0.1); }
+        /* Hintergrund Animation der Seite */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+        }
 
-        #welt { width: 1000px; height: 600px; background: rgba(0,0,0,0.96); border: 4px solid #333; margin: 70px auto; position: relative; overflow: hidden; display: none; }
-        #player { position: absolute; z-index: 20; display: flex; align-items: center; justify-content: center; }
-        .apple { position: absolute; width: 22px; height: 22px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 20px #ff0000; }
-        .enemy { position: absolute; border: 2px solid red; border-radius: 8px; font-size: 25px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px red; }
-        .bullet { position: absolute; background: var(--gold); width: 10px; height: 10px; border-radius: 50%; }
-        .blackhole { position: absolute; width: 120px; height: 120px; background: radial-gradient(circle, #000 40%, var(--red) 100%); border-radius: 50%; left: 440px; top: 240px; box-shadow: 0 0 50px var(--red); }
-        
-        #hud { position: absolute; top: 0; width: 100%; height: 65px; display: none; justify-content: space-around; align-items: center; background: #000; border-bottom: 3px solid var(--neon); z-index: 100; font-size: 20px; font-weight: bold; }
+        #game-container {
+            position: relative;
+            width: 950px;
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
+            background: #1e293b;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* UI SYSTEM */
+        .ui-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: 0.3s;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            width: 450px;
+        }
+
+        h1 {
+            font-size: 50px;
+            margin: 0 0 20px;
+            background: linear-gradient(45deg, #60a5fa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            color: #94a3b8;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .menu-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #3b82f6;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+            width: 100%;
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+            .menu-btn:hover {
+                background: #3b82f6;
+                transform: scale(1.02);
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+            }
+
+        .btn-back {
+            border-color: #64748b;
+            margin-top: 20px;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            pointer-events: none;
+            font-weight: 800;
+            font-size: 22px;
+            z-index: 10;
+            text-shadow: 0 2px 4px black;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .info-text {
+            font-size: 14px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            text-align: left;
+        }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-<canvas id="bgCanvas"></canvas>
+    <canvas id="bg-canvas"></canvas>
 
-<div id="mainMenu" class="overlay" style="display: flex;">
-    <h1 style="color: var(--neon); font-size: 80px; text-shadow: 0 0 30px var(--neon); margin: 0;">PARADIES.IO</h1>
-    <div style="color: var(--gold); font-size: 25px; margin: 15px 0;">COINS: <span id="bankDisplay">0</span> 🪙</div>
-    <div style="display: flex; gap: 10px;">
-        <button class="btn" onclick="toggleMenu('modeMenu', true)">MISSIONEN</button>
-        <button class="btn btn-gold" onclick="toggleMenu('shopMenu', true)">SHOP</button>
-        <button class="btn" style="border-color:#555; color:#555;" onclick="toggleMenu('settingsMenu', true)">SETTINGS</button>
-    </div>
-    <button class="btn" style="position: fixed; bottom: 20px; right: 20px; border-color: red; color: red;" onclick="toggleMenu('confirmDelete', true)">KONTO LÖSCHEN</button>
-</div>
-
-<div id="modeMenu" class="overlay">
-    <div class="window">
-        <h2 style="color: var(--neon);">MISSION WÄHLEN</h2>
-        <div id="modeButtons" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
-        <div id="briefingBox" style="display:none; margin-top:20px; padding:15px; border:2px solid var(--gold); background:rgba(255,215,0,0.05);">
-            <h3 id="bTitle" style="color:var(--gold); margin:0;"></h3>
-            <p id="bDesc" style="font-size:14px; color:#ccc;"></p>
-            <button class="btn" id="startBtn" style="width:100%; background:var(--win); color:black;">MISSION STARTEN</button>
+    <div id="game-container">
+        <div id="hud" class="hidden">
+            <div>SCORE: <span id="scoreVal">0</span></div>
+            <div id="timerDisplay" class="hidden">TIME: <span id="timeVal">30</span>s</div>
+            <div id="modeName">NORMAL</div>
         </div>
-        <button class="btn" onclick="toggleMenu('mainMenu', true)" style="margin-top:10px;">ZURÜCK</button>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="screen-main" class="ui-screen">
+            <div class="panel">
+                <h1>ULTRA RUNNER</h1>
+                <h2>Infinity Edition v4.5</h2>
+                <button class="menu-btn" onclick="showScreen('screen-modes')">SPIEL STARTEN</button>
+                <button class="menu-btn" onclick="showScreen('screen-info')">ANLEITUNG / INFOS</button>
+                <button class="menu-btn" onclick="showScreen('screen-settings')">EINSTELLUNGEN</button>
+            </div>
+        </div>
+
+        <div id="screen-modes" class="ui-screen hidden">
+            <div class="panel">
+                <h1>MODUS</h1>
+                <button class="menu-btn" onclick="initGame('normal')">NORMAL</button>
+                <button class="menu-btn" onclick="initGame('hardcore')">HARDCORE (Kein Limit)</button>
+                <button class="menu-btn" onclick="initGame('speedrun')">SPEEDRUN (Sammle Zeit!)</button>
+                <button class="menu-btn" onclick="initGame('moon')">MOON (Geringe Gravitation)</button>
+                <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
+            </div>
+        </div>
+
+        <div id="screen-info" class="ui-screen hidden">
+            <div class="panel">
+                <h1>INFOS</h1>
+                <div class="info-text">
+                    <p><b>Steuerung:</b> Linksklick oder Leertaste zum Springen.</p>
+                    <p><b>Mechanik:</b> Je länger du drückst, desto höher springst du (bis zu einem Limit).</p>
+                    <p><b>Fast Fall:</b> Drücke STRG während du in der Luft bist.</p>
+                    <p><b>Speedrun:</b> Sammle die gelben Kanister, um deine Zeit zu verlängern!</p>
+                </div>
+                <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
+            </div>
+        </div>
+
+        <div id="screen-settings" class="ui-screen hidden">
+            <div class="panel">
+                <h1>SETTINGS</h1>
+                <button class="menu-btn" onclick="toggleAudio()">SOUND: <span id="audioStatus">AN</span></button>
+                <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
+            </div>
+        </div>
+
+        <div id="screen-over" class="ui-screen hidden">
+            <div class="panel">
+                <h1 id="over-title">GAME OVER</h1>
+                <p id="finalScoreDisplay" style="font-size: 24px; margin-bottom: 20px;">Score: 0</p>
+                <button class="menu-btn" onclick="retryGame()">ERNEUT VERSUCHEN</button>
+                <button class="menu-btn btn-back" onclick="showScreen('screen-main')">HAUPTMENÜ</button>
+            </div>
+        </div>
     </div>
-</div>
 
-<div id="shopMenu" class="overlay"><div class="window"><h2>SKIN SHOP</h2><div id="skinList"></div><button class="btn" onclick="toggleMenu('mainMenu', true)">ZURÜCK</button></div></div>
-<div id="settingsMenu" class="overlay"><div class="window"><h2>SETTINGS</h2><p>MUSIC: <input type="range"></p><p>SFX: <input type="range"></p><button class="btn" onclick="toggleMenu('mainMenu', true)">OK</button></div></div>
-<div id="confirmDelete" class="overlay"><div class="window"><h2>LÖSCHEN?</h2><button class="btn" onclick="localStorage.clear(); location.reload();">JA</button><button class="btn" onclick="toggleMenu('mainMenu', true)">NEIN</button></div></div>
-<div id="completeMenu" class="overlay"><div class="window"><h2 id="finishTitle">ENDE</h2><p style="font-size:30px;">BELOHNUNG: <span id="finishCoins">0</span> 🪙</p><button class="btn" onclick="location.reload()">HAUPTMENÜ</button></div></div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bctx = bgCanvas.getContext('2d');
 
-<div id="hud">
-    <div id="hud-mode">MODE</div>
-    <div id="hud-lives">❤️ 3</div>
-    <div id="hud-coins">🪙 0</div>
-    <div id="hud-timer"></div>
-    <button class="btn" style="font-size:12px;" onclick="finishLevel()">SICHERN</button>
-</div>
+        canvas.width = 950; canvas.height = 500;
+        let stars = [];
+        let audioEnabled = true;
 
-<div id="welt"><div id="player"></div></div>
-
-<script>
-let bank = parseInt(localStorage.getItem('p_bank')) || 0;
-let ownedSkins = JSON.parse(localStorage.getItem('p_skins')) || ['🟦'];
-let currentSkin = localStorage.getItem('p_currentSkin') || '🟦';
-let x, y, lives, sessionCoins, score, pSize, isAlive = false, timeLeft = 60, gameTime = 0;
-let keys = {}, currentMode = '', bullets = [], enemies = [];
-
-const modes = {
-    'Kampf': 'Zerstöre die 👾 Gegner! Nur Kills geben Coins (3 pro Kill).',
-    'Gigant': 'Werde 450px groß durch Äpfel. Wände sind kein Problem!',
-    'Coin Simulator': 'Jeder 2. Apfel gibt dir einen Coin. Ganz entspannt.',
-    'Hardcore': 'EXTREME SPEED! Du hast nur 1 Leben. Wer lange überlebt, kriegt den Bonus.',
-    'Klassik': '60 Sekunden Zeit. Sammle so viele Äpfel wie möglich!',
-    'Coin-Farming': 'Vorsicht vor dem roten Loch in der Mitte! Viele Äpfel = Viele Coins.'
-};
-
-const skinIcons = ['🟦','🐱','😎','👽','🤖','🦊','🦁','💎','🔥','👑','🐙','🐡','🐢','🦖','🚀','🛸','🌈','🍕','🎮','👾','💀','💰','🧿','🌀','👺','👻','🤡','👹','🌟','🌙','🌍','🎨','🎬','🎤','🎧','🎸','🕹️','🪐','🧪','🧬','🔋','⚡','🔋','💎','🛸'];
-
-function toggleMenu(id, s) { 
-    document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
-    if(s) document.getElementById(id).style.display = 'flex';
-    if(id==='shopMenu') renderShop();
-}
-
-function renderShop() {
-    const list = document.getElementById('skinList'); list.innerHTML = '';
-    skinIcons.forEach((s, i) => {
-        const price = i * 50; const isOwned = ownedSkins.includes(s);
-        const card = document.createElement('div'); card.className = `skin-card ${currentSkin === s ? 'equipped' : ''}`;
-        card.innerHTML = `<div style="font-size:25px">${s}</div><div style="font-size:9px">${isOwned?'FREI':price}</div>`;
-        card.onclick = () => {
-            if(isOwned) { currentSkin = s; localStorage.setItem('p_currentSkin', s); renderShop(); }
-            else if(bank >= price) { bank -= price; ownedSkins.push(s); localStorage.setItem('p_bank', bank); localStorage.setItem('p_skins', JSON.stringify(ownedSkins)); renderShop(); }
-        };
-        list.appendChild(card);
-    });
-}
-
-const mBox = document.getElementById('modeButtons');
-Object.keys(modes).forEach(m => {
-    const b = document.createElement('button'); b.className = 'btn'; b.innerText = m;
-    b.onclick = () => {
-        document.getElementById('briefingBox').style.display = 'block';
-        document.getElementById('bTitle').innerText = m;
-        document.getElementById('bDesc').innerText = modes[m];
-        document.getElementById('startBtn').onclick = () => startGame(m);
-    };
-    mBox.appendChild(b);
-});
-
-function startGame(m) {
-    currentMode = m; isAlive = true; score = 0; sessionCoins = 0; pSize = 35; gameTime = 0;
-    x = (m === 'Coin-Farming') ? 100 : 480; y = 280; // Startpunkt Fix für Farming
-    lives = (m === 'Hardcore') ? 1 : 3;
-    timeLeft = 60; bullets = []; enemies = [];
-    toggleMenu('', false);
-    document.getElementById('hud').style.display = 'flex';
-    document.getElementById('welt').style.display = 'block';
-    document.getElementById('welt').innerHTML = '<div id="player"></div>';
-    if(m === 'Coin-Farming') { let bh = document.createElement('div'); bh.className = 'blackhole'; document.getElementById('welt').appendChild(bh); }
-    if(m === 'Kampf') spawnEnemy();
-    spawnApple(); loop();
-}
-
-function spawnApple() {
-    const a = document.createElement('div'); a.className = 'apple';
-    a.style.left = Math.random()*950+'px'; a.style.top = Math.random()*550+'px';
-    document.getElementById('welt').appendChild(a);
-}
-
-function spawnEnemy() {
-    const e = document.createElement('div'); e.className = 'enemy'; e.innerHTML = '👾';
-    e.style.left = Math.random()*900+'px'; e.style.top = Math.random()*500+'px';
-    e.style.width = '50px'; e.style.height = '50px';
-    document.getElementById('welt').appendChild(e);
-    enemies.push({el: e});
-}
-
-function loop() {
-    if(!isAlive) return;
-    gameTime += 0.016;
-    let s = (currentMode === 'Hardcore') ? 25 : 10;
-    if(keys['KeyW']) y -= s; if(keys['KeyS']) y += s;
-    if(keys['KeyA']) x -= s; if(keys['KeyD']) x += s;
-
-    // Border Logic
-    if(x<0 || x>1000-pSize || y<0 || y>600-pSize) {
-        if(currentMode === 'Hardcore') { die(); return; }
-        x = Math.max(0, Math.min(x, 1000-pSize)); y = Math.max(0, Math.min(y, 600-pSize));
-    }
-
-    // Apples
-    document.querySelectorAll('.apple').forEach(a => {
-        if(Math.abs(x-parseInt(a.style.left))<pSize && Math.abs(y-parseInt(a.style.top))<pSize) {
-            a.remove(); spawnApple(); score++;
-            if(currentMode === 'Coin Simulator' && score % 2 === 0) sessionCoins++;
-            if(currentMode === 'Klassik' || currentMode === 'Coin-Farming' || currentMode === 'Hardcore') sessionCoins++;
-            if(currentMode === 'Gigant') { pSize += 12; if(pSize >= 450) finishLevel(); }
-            updateHUD();
+        // AUDIO ENGINE (Synthetisch)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, type, duration, vol=0.1) {
+        if(!audioEnabled) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
         }
-    });
 
-    // Kampf-Logic
-    bullets.forEach((b, bi) => {
-        b.x += b.vx; b.y += b.vy; b.el.style.left = b.x+'px'; b.el.style.top = b.y+'px';
-        enemies.forEach((e, ei) => {
-            if(Math.abs(b.x-parseInt(e.el.style.left))<50 && Math.abs(b.y-parseInt(e.el.style.top))<50) {
-                e.el.remove(); enemies.splice(ei, 1); b.el.remove(); bullets.splice(bi, 1);
-                sessionCoins += 3; spawnEnemy(); updateHUD();
-            }
+        // Hintergrund Animation (Sterne)
+        function initStars() {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        for(let i=0; i<100; i++) stars.push({x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height, s: Math.random()*2});
+        }
+        function drawStars() {
+        bctx.fillStyle = "#020617"; bctx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
+        bctx.fillStyle = "white";
+        stars.forEach(s => {
+        s.y += s.s * 0.5;
+        if(s.y > bgCanvas.height) s.y = 0;
+        bctx.beginPath(); bctx.arc(s.x, s.y, s.s, 0, Math.PI*2); bctx.fill();
         });
-    });
+        requestAnimationFrame(drawStars);
+        }
 
-    if(currentMode === 'Coin-Farming' && Math.abs(x-440)<80 && Math.abs(y-240)<80) die();
+        let gameState = 'menu';
+        let currentMode = 'normal';
+        let score = 0, time = 30, speed = 6;
+        let obstacles = [], items = [];
+        let isPressing = false, jumpTime = 0;
 
-    const p = document.getElementById('player');
-    p.innerText = currentSkin; p.style.left = x+'px'; p.style.top = y+'px';
-    p.style.width = pSize+'px'; p.style.height = pSize+'px'; p.style.fontSize = (pSize*0.8)+'px';
-    
-    if(currentMode === 'Klassik') { timeLeft -= 0.016; if(timeLeft <= 0) finishLevel(); updateHUD(); }
-    requestAnimationFrame(loop);
-}
+        const player = { x: 100, y: 300, w: 45, h: 45, dy: 0, grav: 0.8, onGround: false };
 
-function die() {
-    if(currentMode === 'Hardcore' && gameTime < 5) sessionCoins = 0; // Kein Exploit-Geld
-    lives--; updateHUD();
-    if(lives <= 0) { isAlive = false; finishLevel(); }
-    else { x = 480; y = 280; }
-}
+        function showScreen(id) {
+        document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById('hud').classList.add('hidden');
+        gameState = 'menu';
+        playSound(440, 'square', 0.05, 0.02);
+        }
 
-function finishLevel() {
-    isAlive = false; bank += Math.floor(sessionCoins);
-    localStorage.setItem('p_bank', bank);
-    document.getElementById('finishCoins').innerText = sessionCoins;
-    toggleMenu('completeMenu', true);
-}
+        function toggleAudio() {
+        audioEnabled = !audioEnabled;
+        document.getElementById('audioStatus').innerText = audioEnabled ? "AN" : "AUS";
+        }
 
-function updateHUD() {
-    document.getElementById('bankDisplay').innerText = bank;
-    document.getElementById('hud-lives').innerText = "❤️ " + lives;
-    document.getElementById('hud-coins').innerText = "🪙 " + sessionCoins;
-    document.getElementById('hud-mode').innerText = currentMode.toUpperCase();
-    document.getElementById('hud-timer').innerText = (currentMode === 'Klassik') ? Math.ceil(timeLeft) + "s" : "";
-}
+        function initGame(mode) {
+        currentMode = mode;
+        gameState = 'playing';
+        score = 0; time = 30; speed = (mode === 'hardcore') ? 10 : 7;
+        obstacles = []; items = [];
+        player.y = 300; player.dy = 0;
+        player.grav = (mode === 'moon') ? 0.3 : 0.8;
 
-window.onkeydown=(e)=>keys[e.code]=true;
-window.onkeyup=(e)=>keys[e.code]=false;
-window.onmousedown=(e)=>{
-    if(currentMode === 'Kampf' && isAlive) {
-        const rect = document.getElementById('welt').getBoundingClientRect();
-        const b = document.createElement('div'); b.className = 'bullet';
-        const sx = x+pSize/2, sy = y+pSize/2;
-        const angle = Math.atan2((e.clientY-rect.top)-sy, (e.clientX-rect.left)-sx);
-        b.style.left = sx+'px'; b.style.top = sy+'px';
-        document.getElementById('welt').appendChild(b);
-        bullets.push({el:b, x:sx, y:sy, vx:Math.cos(angle)*15, vy:Math.sin(angle)*15});
-    }
-};
+        document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById('hud').classList.remove('hidden');
+        document.getElementById('modeName').innerText = mode.toUpperCase();
+        document.getElementById('timerDisplay').classList.toggle('hidden', mode !== 'speedrun');
 
-const canvas = document.getElementById('bgCanvas'); const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-let stars = Array(150).fill().map(() => ({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*4}));
-function drawBg() {
-    ctx.fillStyle="#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="#fff"; stars.forEach(s=>{ ctx.fillRect(s.x,s.y,s.s,s.s); s.y+=0.4; if(s.y>canvas.height) s.y=0; });
-    requestAnimationFrame(drawBg);
-}
-drawBg();
-document.getElementById('bankDisplay').innerText = bank;
-</script>
+        playSound(660, 'sine', 0.2);
+        update();
+        }
+
+        function retryGame() { initGame(currentMode); }
+
+        function update() {
+        if(gameState !== 'playing') return;
+
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+
+        // Speedrun Timer
+        if(currentMode === 'speedrun') {
+        time -= 1/60;
+        document.getElementById('timeVal').innerText = Math.ceil(time);
+        if(time <= 0) gameOver("ZEIT ABGELAUFEN!");
+        }
+
+        // Jump Logic
+        if(isPressing && jumpTime > 0) {
+        player.dy = (currentMode === 'moon') ? -6 : -10;
+        jumpTime--;
+        }
+        player.dy += player.grav;
+        player.y += player.dy;
+
+        if(player.y > canvas.height - player.h - 40) {
+        player.y = canvas.height - player.h - 40;
+        player.dy = 0; player.onGround = true;
+        } else player.onGround = false;
+
+        // Player Render
+        ctx.fillStyle = "#3b82f6"; ctx.fillRect(player.x, player.y, player.w, player.h);
+
+        // Boden
+        ctx.fillStyle = "#334155"; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
+
+        // Spawning
+        if(Math.random() < 0.02) {
+        let h = 40 + Math.random()*100;
+        obstacles.push({x: canvas.width, y: canvas.height-h-40, w: 35, h: h});
+        }
+        if(currentMode === 'speedrun' && Math.random() < 0.01) {
+        items.push({x: canvas.width, y: 200 + Math.random()*100, w: 20, h: 20});
+        }
+
+        // Move Obstacles
+        obstacles.forEach((o, i) => {
+        o.x -= speed;
+        ctx.fillStyle = "#ef4444"; ctx.fillRect(o.x, o.y, o.w, o.h);
+        if(player.x < o.x + o.w && player.x + player.w > o.x && player.y < o.y + o.h && player.y + player.h > o.y) gameOver();
+        if(o.x < -40) { obstacles.splice(i,1); score++; document.getElementById('scoreVal').innerText = score; }
+        });
+
+        // Move Items
+        items.forEach((it, i) => {
+        it.x -= speed;
+        ctx.fillStyle = "#fbbf24"; ctx.fillRect(it.x, it.y, it.w, it.h);
+        if(player.x < it.x + it.w && player.x + player.w > it.x && player.y < it.y + it.h && player.y + player.h > it.y) {
+        items.splice(i,1); time += 5; playSound(880, 'sine', 0.1);
+        }
+        });
+
+        requestAnimationFrame(update);
+        }
+
+        function gameOver(reason = "DU BIST GEGEN EINE MAUER GEKNALLT!") {
+        gameState = 'over';
+        playSound(150, 'sawtooth', 0.5);
+        document.getElementById('screen-over').classList.remove('hidden');
+        document.getElementById('over-title').innerText = reason;
+        document.getElementById('finalScoreDisplay').innerText = "Score: " + score;
+        }
+
+        // Event Listeners
+        window.addEventListener('mousedown', () => {
+        if(player.onGround && gameState === 'playing') {
+        jumpTime = 25; isPressing = true;
+        playSound(300 + Math.random()*100, 'triangle', 0.1);
+        }
+        });
+        window.addEventListener('mouseup', () => isPressing = false);
+        window.addEventListener('keydown', (e) => {
+        if(e.code === 'Space' && player.onGround) { jumpTime = 25; isPressing = true; playSound(350, 'triangle', 0.1); }
+        if(e.code === 'ControlLeft') player.dy = 15;
+        });
+        window.addEventListener('keyup', (e) => { if(e.code === 'Space') isPressing = false; });
+
+        initStars();
+        drawStars();
+    </script>
 </body>
 </html>

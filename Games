@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Ultra Runner - Infinity Edition</title>
+    <title>ULTRA RUNNER - Infinity Edition v4.7</title>
     <style>
         :root { --primary: #3b82f6; --accent: #ec4899; --bg: #020617; }
         body { 
@@ -12,7 +12,6 @@
             user-select: none; color: white;
         }
         
-        /* Hintergrund Animation der Seite */
         #bg-canvas { position: fixed; inset: 0; z-index: -1; }
 
         #game-container {
@@ -24,13 +23,12 @@
 
         canvas { display: block; }
 
-        /* UI SYSTEM */
         .ui-screen {
             position: absolute; inset: 0;
             background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(15px);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; transition: 0.3s;
+            z-index: 100;
         }
         .panel {
             background: rgba(255, 255, 255, 0.05);
@@ -38,8 +36,8 @@
             text-align: center; width: 450px;
         }
 
-        h1 { font-size: 50px; margin: 0 0 20px; background: linear-gradient(45deg, #60a5fa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        h2 { color: #94a3b8; font-size: 18px; margin-bottom: 30px; }
+        h1 { font-size: 50px; margin: 0 0 10px; background: linear-gradient(45deg, #60a5fa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
 
         .menu-btn {
             background: rgba(255, 255, 255, 0.05); border: 1px solid #3b82f6; color: white;
@@ -54,7 +52,6 @@
             display: flex; justify-content: space-around; pointer-events: none;
             font-weight: 800; font-size: 22px; z-index: 10; text-shadow: 0 2px 4px black;
         }
-
         .hidden { display: none !important; }
         .info-text { font-size: 14px; color: #cbd5e1; line-height: 1.6; text-align: left; }
     </style>
@@ -75,7 +72,7 @@
     <div id="screen-main" class="ui-screen">
         <div class="panel">
             <h1>ULTRA RUNNER</h1>
-            <h2>Infinity Edition v4.5</h2>
+            <h2>Infinity Edition v4.7</h2>
             <button class="menu-btn" onclick="showScreen('screen-modes')">SPIEL STARTEN</button>
             <button class="menu-btn" onclick="showScreen('screen-info')">ANLEITUNG / INFOS</button>
             <button class="menu-btn" onclick="showScreen('screen-settings')">EINSTELLUNGEN</button>
@@ -86,8 +83,8 @@
         <div class="panel">
             <h1>MODUS</h1>
             <button class="menu-btn" onclick="initGame('normal')">NORMAL</button>
-            <button class="menu-btn" onclick="initGame('hardcore')">HARDCORE (Kein Limit)</button>
-            <button class="menu-btn" onclick="initGame('speedrun')">SPEEDRUN (Sammle Zeit!)</button>
+            <button class="menu-btn" onclick="initGame('hardcore')">HARDCORE (Schnell!)</button>
+            <button class="menu-btn" onclick="initGame('speedrun')">SPEEDRUN (Zeit-Tanks!)</button>
             <button class="menu-btn" onclick="initGame('moon')">MOON (Geringe Gravitation)</button>
             <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
         </div>
@@ -97,10 +94,9 @@
         <div class="panel">
             <h1>INFOS</h1>
             <div class="info-text">
-                <p><b>Steuerung:</b> Linksklick oder Leertaste zum Springen.</p>
-                <p><b>Mechanik:</b> Je länger du drückst, desto höher springst du (bis zu einem Limit).</p>
-                <p><b>Fast Fall:</b> Drücke STRG während du in der Luft bist.</p>
-                <p><b>Speedrun:</b> Sammle die gelben Kanister, um deine Zeit zu verlängern!</p>
+                <p><b>Sprung:</b> Maus/Leertaste halten für Höhe.</p>
+                <p><b>Fast Fall:</b> STRG drücken für Sturzflug.</p>
+                <p><b>Fairness:</b> Hindernisse spawnen jetzt mit garantiertem Mindestabstand.</p>
             </div>
             <button class="menu-btn btn-back" onclick="showScreen('screen-main')">ZURÜCK</button>
         </div>
@@ -116,9 +112,9 @@
 
     <div id="screen-over" class="ui-screen hidden">
         <div class="panel">
-            <h1 id="over-title">GAME OVER</h1>
-            <p id="finalScoreDisplay" style="font-size: 24px; margin-bottom: 20px;">Score: 0</p>
-            <button class="menu-btn" onclick="retryGame()">ERNEUT VERSUCHEN</button>
+            <h1 id="over-title" style="color:#f472b6">GAME OVER</h1>
+            <p id="finalScoreDisplay" style="font-size: 24px;">Score: 0</p>
+            <button class="menu-btn" onclick="retryGame()">NOCHMAL</button>
             <button class="menu-btn btn-back" onclick="showScreen('screen-main')">HAUPTMENÜ</button>
         </div>
     </div>
@@ -134,44 +130,38 @@
     let stars = [];
     let audioEnabled = true;
 
-    // AUDIO ENGINE (Synthetisch)
+    function initStars() {
+        bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+        stars = [];
+        for(let i=0; i<150; i++) stars.push({ x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height, s: Math.random()*2 + 0.5 });
+    }
+    window.addEventListener('resize', initStars);
+
+    function drawStars() {
+        bctx.fillStyle = "#020617"; bctx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
+        bctx.fillStyle = "white";
+        stars.forEach(s => {
+            s.y += s.s * 0.3; if(s.y > bgCanvas.height) s.y = 0;
+            bctx.beginPath(); bctx.arc(s.x, s.y, s.s/2, 0, Math.PI*2); bctx.fill();
+        });
+        requestAnimationFrame(drawStars);
+    }
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(freq, type, duration, vol=0.1) {
         if(!audioEnabled) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.connect(gain); gain.connect(audioCtx.destination);
         gain.gain.setValueAtTime(vol, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
 
-    // Hintergrund Animation (Sterne)
-    function initStars() {
-        bgCanvas.width = window.innerWidth;
-        bgCanvas.height = window.innerHeight;
-        for(let i=0; i<100; i++) stars.push({x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height, s: Math.random()*2});
-    }
-    function drawStars() {
-        bctx.fillStyle = "#020617"; bctx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
-        bctx.fillStyle = "white";
-        stars.forEach(s => {
-            s.y += s.s * 0.5;
-            if(s.y > bgCanvas.height) s.y = 0;
-            bctx.beginPath(); bctx.arc(s.x, s.y, s.s, 0, Math.PI*2); bctx.fill();
-        });
-        requestAnimationFrame(drawStars);
-    }
-
-    let gameState = 'menu';
-    let currentMode = 'normal';
-    let score = 0, time = 30, speed = 6;
-    let obstacles = [], items = [];
-    let isPressing = false, jumpTime = 0;
+    let gameState = 'menu', currentMode = 'normal';
+    let score = 0, time = 35, speed = 6, obstacles = [], items = [];
+    let isPressing = false, jumpTimer = 0;
 
     const player = { x: 100, y: 300, w: 45, h: 45, dy: 0, grav: 0.8, onGround: false };
 
@@ -180,7 +170,6 @@
         document.getElementById(id).classList.remove('hidden');
         document.getElementById('hud').classList.add('hidden');
         gameState = 'menu';
-        playSound(440, 'square', 0.05, 0.02);
     }
 
     function toggleAudio() {
@@ -189,19 +178,19 @@
     }
 
     function initGame(mode) {
-        currentMode = mode;
-        gameState = 'playing';
-        score = 0; time = 30; speed = (mode === 'hardcore') ? 10 : 7;
-        obstacles = []; items = [];
-        player.y = 300; player.dy = 0;
-        player.grav = (mode === 'moon') ? 0.3 : 0.8;
+        currentMode = mode; gameState = 'playing';
+        score = 0; time = 35; 
+        // Faire Start-Geschwindigkeiten
+        speed = (mode === 'hardcore') ? 9 : (mode === 'moon' ? 6 : 6.5);
+        obstacles = []; items = []; player.y = 300; player.dy = 0;
+        player.grav = (mode === 'moon') ? 0.35 : 0.85;
 
         document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
         document.getElementById('hud').classList.remove('hidden');
         document.getElementById('modeName').innerText = mode.toUpperCase();
         document.getElementById('timerDisplay').classList.toggle('hidden', mode !== 'speedrun');
         
-        playSound(660, 'sine', 0.2);
+        playSound(500, 'sine', 0.2);
         update();
     }
 
@@ -209,21 +198,19 @@
 
     function update() {
         if(gameState !== 'playing') return;
-
         ctx.clearRect(0,0,canvas.width, canvas.height);
         
-        // Speedrun Timer
         if(currentMode === 'speedrun') {
             time -= 1/60;
             document.getElementById('timeVal').innerText = Math.ceil(time);
             if(time <= 0) gameOver("ZEIT ABGELAUFEN!");
         }
 
-        // Jump Logic
-        if(isPressing && jumpTime > 0) {
-            player.dy = (currentMode === 'moon') ? -6 : -10;
-            jumpTime--;
+        if(isPressing && jumpTimer > 0) {
+            player.dy = (currentMode === 'moon') ? -6.5 : -11.5;
+            jumpTimer--;
         }
+
         player.dy += player.grav;
         player.y += player.dy;
 
@@ -232,65 +219,60 @@
             player.dy = 0; player.onGround = true;
         } else player.onGround = false;
 
-        // Player Render
-        ctx.fillStyle = "#3b82f6"; ctx.fillRect(player.x, player.y, player.w, player.h);
-
-        // Boden
+        ctx.fillStyle = "#3b82f6"; ctx.shadowBlur = 15; ctx.shadowColor = "#3b82f6";
+        ctx.fillRect(player.x, player.y, player.w, player.h); ctx.shadowBlur = 0;
         ctx.fillStyle = "#334155"; ctx.fillRect(0, canvas.height-40, canvas.width, 40);
 
-        // Spawning
-        if(Math.random() < 0.02) {
-            let h = 40 + Math.random()*100;
-            obstacles.push({x: canvas.width, y: canvas.height-h-40, w: 35, h: h});
-        }
-        if(currentMode === 'speedrun' && Math.random() < 0.01) {
-            items.push({x: canvas.width, y: 200 + Math.random()*100, w: 20, h: 20});
+        // INTELLIGENTES SPAWNING
+        let spawnChance = (currentMode === 'hardcore') ? 0.025 : 0.018;
+        // Berechne Mindestabstand basierend auf aktueller Geschwindigkeit (Fairness-Check)
+        let minGap = speed * (currentMode === 'moon' ? 55 : 42); 
+
+        if(Math.random() < spawnChance) {
+            let lastObs = obstacles[obstacles.length - 1];
+            if(!lastObs || (canvas.width - lastObs.x) > minGap) {
+                let h = 45 + Math.random()*85;
+                obstacles.push({x: canvas.width, y: canvas.height-h-40, w: 35, h: h});
+            }
         }
 
-        // Move Obstacles
         obstacles.forEach((o, i) => {
             o.x -= speed;
             ctx.fillStyle = "#ef4444"; ctx.fillRect(o.x, o.y, o.w, o.h);
             if(player.x < o.x + o.w && player.x + player.w > o.x && player.y < o.y + o.h && player.y + player.h > o.y) gameOver();
-            if(o.x < -40) { obstacles.splice(i,1); score++; document.getElementById('scoreVal').innerText = score; }
+            if(o.x < -40) { obstacles.splice(i,1); score++; document.getElementById('scoreVal').innerText = score; speed += 0.015; }
         });
 
-        // Move Items
+        if(currentMode === 'speedrun' && Math.random() < 0.01) items.push({x: canvas.width, y: 200 + Math.random()*100, w: 25, h: 25});
         items.forEach((it, i) => {
             it.x -= speed;
-            ctx.fillStyle = "#fbbf24"; ctx.fillRect(it.x, it.y, it.w, it.h);
+            ctx.fillStyle = "#fbbf24"; ctx.shadowBlur = 10; ctx.shadowColor = "#fbbf24";
+            ctx.fillRect(it.x, it.y, it.w, it.h); ctx.shadowBlur = 0;
             if(player.x < it.x + it.w && player.x + player.w > it.x && player.y < it.y + it.h && player.y + player.h > it.y) {
-                items.splice(i,1); time += 5; playSound(880, 'sine', 0.1);
+                items.splice(i,1); time += 5; playSound(800, 'sine', 0.1);
             }
         });
 
         requestAnimationFrame(update);
     }
 
-    function gameOver(reason = "DU BIST GEGEN EINE MAUER GEKNALLT!") {
-        gameState = 'over';
-        playSound(150, 'sawtooth', 0.5);
+    function gameOver(reason = "CRASH!") {
+        gameState = 'over'; playSound(150, 'sawtooth', 0.5);
         document.getElementById('screen-over').classList.remove('hidden');
         document.getElementById('over-title').innerText = reason;
         document.getElementById('finalScoreDisplay').innerText = "Score: " + score;
     }
 
-    // Event Listeners
-    window.addEventListener('mousedown', () => { 
-        if(player.onGround && gameState === 'playing') { 
-            jumpTime = 25; isPressing = true; 
-            playSound(300 + Math.random()*100, 'triangle', 0.1);
-        }
-    });
+    const startJump = () => { if(player.onGround && gameState === 'playing') { jumpTimer = 24; isPressing = true; playSound(400, 'triangle', 0.1); } };
+    window.addEventListener('mousedown', startJump);
     window.addEventListener('mouseup', () => isPressing = false);
     window.addEventListener('keydown', (e) => {
-        if(e.code === 'Space' && player.onGround) { jumpTime = 25; isPressing = true; playSound(350, 'triangle', 0.1); }
-        if(e.code === 'ControlLeft') player.dy = 15;
+        if(e.code === 'Space') startJump();
+        if(e.code === 'ControlLeft') player.dy = 18;
     });
     window.addEventListener('keyup', (e) => { if(e.code === 'Space') isPressing = false; });
 
-    initStars();
-    drawStars();
+    initStars(); drawStars();
 </script>
 </body>
 </html>

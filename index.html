@@ -4,21 +4,31 @@
     <meta charset="UTF-8">
     <title>ULTRA RUNNER - System Update</title>
     <style>
-        :root { --primary: #3b82f6; --accent: #ec4899; --bg: #020617; }
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            background: var(--bg); 
-            font-family: 'Segoe UI', sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            color: white; 
+        :root {
+            --primary: #3b82f6;
+            --accent: #ec4899;
+            --bg: #020617;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: var(--bg);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
             cursor: wait; /* Zeigt die Sanduhr an */
         }
 
-        #bg-canvas { position: fixed; inset: 0; z-index: -1; filter: blur(3px); }
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            filter: blur(3px);
+        }
 
         .loading-container {
             text-align: center;
@@ -39,8 +49,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         h1 {
@@ -56,7 +71,9 @@
         }
 
         @keyframes shine {
-            to { background-position: 200% center; }
+            to {
+                background-position: 200% center;
+            }
         }
 
         p {
@@ -91,74 +108,79 @@
         }
 
         @keyframes dot-flashing {
-            0% { background-color: var(--primary); }
-            50%, 100% { background-color: rgba(59, 130, 246, 0.2); }
+            0% {
+                background-color: var(--primary);
+            }
+
+            50%, 100% {
+                background-color: rgba(59, 130, 246, 0.2);
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="blocker" id="blocker"></div>
+    <div class="blocker" id="blocker"></div>
 
-<canvas id="bg-canvas"></canvas>
+    <canvas id="bg-canvas"></canvas>
 
-<div class="loading-container">
-    <div class="ring"></div>
-    <h1>Update is coming</h1>
-    <p>PLEASE WAIT<span class="dot-flashing"></span></p>
-    <div style="margin-top: 50px; font-size: 10px; color: #334155; letter-spacing: 1px;">
-        V2.0.4 - SERVER MAINTENANCE MODE
+    <div class="loading-container">
+        <div class="ring"></div>
+        <h1>Update is coming</h1>
+        <p>PLEASE WAIT<span class="dot-flashing"></span></p>
+        <div style="margin-top: 50px; font-size: 10px; color: #334155; letter-spacing: 1px;">
+            V2.0.4 - SERVER MAINTENANCE MODE
+        </div>
     </div>
-</div>
 
-<script>
-    // Hintergrund-Sterne damit es nicht langweilig ist
-    const bgCanvas = document.getElementById('bg-canvas');
-    const bctx = bgCanvas.getContext('2d');
-    let stars = [];
+    <script>
+        // Hintergrund-Sterne damit es nicht langweilig ist
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bctx = bgCanvas.getContext('2d');
+        let stars = [];
 
-    function init() {
+        function init() {
         bgCanvas.width = window.innerWidth;
         bgCanvas.height = window.innerHeight;
         stars = [];
         for(let i=0; i<80; i++) {
-            stars.push({
-                x: Math.random() * bgCanvas.width,
-                y: Math.random() * bgCanvas.height,
-                s: Math.random() * 2
-            });
+        stars.push({
+        x: Math.random() * bgCanvas.width,
+        y: Math.random() * bgCanvas.height,
+        s: Math.random() * 2
+        });
         }
-    }
+        }
 
-    function draw() {
+        function draw() {
         bctx.fillStyle = "#020617";
         bctx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
         bctx.fillStyle = "white";
         stars.forEach(s => {
-            s.y += s.s * 0.1;
-            if(s.y > bgCanvas.height) s.y = 0;
-            bctx.beginPath();
-            bctx.arc(s.x, s.y, s.s/2, 0, Math.PI*2);
-            bctx.fill();
+        s.y += s.s * 0.1;
+        if(s.y > bgCanvas.height) s.y = 0;
+        bctx.beginPath();
+        bctx.arc(s.x, s.y, s.s/2, 0, Math.PI*2);
+        bctx.fill();
         });
         requestAnimationFrame(draw);
-    }
+        }
 
-    // Deaktiviert alle Tastaturbefehle (F5, F12, etc. werden erschwert)
-    window.addEventListener('keydown', function (e) {
+        // Deaktiviert alle Tastaturbefehle (F5, F12, etc. werden erschwert)
+        window.addEventListener('keydown', function (e) {
         e.preventDefault();
         return false;
-    });
+        });
 
-    // Verhindert Rechtsklick
-    window.oncontextmenu = function () {
+        // Verhindert Rechtsklick
+        window.oncontextmenu = function () {
         return false;
-    }
+        }
 
-    window.onresize = init;
-    init();
-    draw();
-</script>
+        window.onresize = init;
+        init();
+        draw();
+    </script>
 
 </body>
 </html>
